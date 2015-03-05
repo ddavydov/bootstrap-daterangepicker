@@ -318,6 +318,9 @@
                     if (start !== null && end !== null) {
                         this.startDate = start;
                         this.endDate = end;
+                    } else if (selectedRange = options.ranges[_.underscored(val)]) {
+                        this.startDate = selectedRange[0];
+                        this.endDate = selectedRange[1];
                     }
                 }
             }
@@ -365,6 +368,9 @@
 
                 var list = '<ul>';
                 for (range in this.ranges) {
+                    if (typeof options.translateRangeLabel === 'function') {
+                        range = options.translateRangeLabel(range)
+                    }
                     list += '<li>' + range + '</li>';
                 }
                 list += '<li>' + this.locale.customRangeLabel + '</li>';
@@ -653,7 +659,7 @@
             if (label == this.locale.customRangeLabel) {
                 this.updateView();
             } else {
-                var dates = this.ranges[label];
+                var dates = this.ranges[_.underscored(label)];
                 this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.format));
                 this.container.find('input[name=daterangepicker_end]').val(dates[1].format(this.format));
             }
@@ -695,12 +701,14 @@
         },
 
         updateInputText: function() {
-            if (this.element.is('input') && !this.singleDatePicker) {
-                this.element.val(this.startDate.format(this.format) + this.separator + this.endDate.format(this.format));
-                this.element.trigger('change');
-            } else if (this.element.is('input')) {
-                this.element.val(this.endDate.format(this.format));
-                this.element.trigger('change');
+            if (this.chosenLabel === this.locale.customRangeLabel) {
+                if (this.element.is('input') && !this.singleDatePicker) {
+                    this.element.val(this.startDate.format(this.format) + this.separator + this.endDate.format(this.format)).change();
+                } else if (this.element.is('input')) {
+                    this.element.val(this.endDate.format(this.format)).change();
+                }
+            } else {
+                this.element.val(this.chosenLabel).change()
             }
         },
 
@@ -710,7 +718,7 @@
             if (label == this.locale.customRangeLabel) {
                 this.showCalendars();
             } else {
-                var dates = this.ranges[label];
+                var dates = this.ranges[_.underscored(label)];
 
                 this.startDate = dates[0];
                 this.endDate = dates[1];
